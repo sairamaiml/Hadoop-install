@@ -1,0 +1,102 @@
+
+# ============================================================
+# HDFS BASIC COMMANDS EXPERIMENT ON WINDOWS USING DOCKER
+# ============================================================
+
+# STEP 1: INSTALL REQUIRED SOFTWARE
+# Install Docker Desktop:
+# https://www.docker.com/products/docker-desktop/
+#
+# Install Git for Windows:
+# https://git-scm.com/download/win/
+#
+# Enable WSL 2 if Docker Desktop requests it.
+# Restart Windows if required.
+# Open Docker Desktop and wait until Docker is running.
+
+# STEP 2: VERIFY INSTALLATION
+# Check Docker, Docker Compose, and Git versions.
+docker --version
+docker compose version
+git --version
+
+# STEP 3: DOWNLOAD THE HADOOP PROJECT
+# Clone the preconfigured Hadoop Docker repository.
+git clone https://github.com/big-data-europe/docker-hadoop.git
+
+# Enter the downloaded project directory.
+cd docker-hadoop
+
+# STEP 4: START HADOOP
+# Download required images and start Hadoop containers.
+docker compose up -d
+
+# Check whether the containers are running.
+docker compose ps
+
+# STEP 5: CHECK HADOOP DAEMONS
+# Display Java processes running in the NameNode container.
+docker compose exec namenode jps
+
+# STEP 6: CREATE A DIRECTORY IN HDFS
+# Create the directory and any missing parent directories.
+docker compose exec namenode hdfs dfs -mkdir -p /user/wwka/exp2
+
+# STEP 7: CREATE A SAMPLE FILE ON WINDOWS
+# Write sample text into a local file.
+Set-Content -Path exp2.txt -Value "HDFS Basic Commands Experiment" -NoNewline
+
+# STEP 8: COPY THE FILE INTO THE CONTAINER
+# Copy the Windows file to the NameNode container.
+docker compose cp exp2.txt namenode:/tmp/exp2.txt
+
+# STEP 9: UPLOAD THE FILE TO HDFS
+# Store the sample file in the HDFS directory.
+docker compose exec namenode hdfs dfs -put /tmp/exp2.txt /user/wwka/exp2/
+
+# STEP 10: LIST THE HDFS DIRECTORY
+# Display files and their details.
+docker compose exec namenode hdfs dfs -ls /user/wwka/exp2
+
+# STEP 11: DISPLAY THE FILE CONTENTS
+# Read the file directly from HDFS.
+docker compose exec namenode hdfs dfs -cat /user/wwka/exp2/exp2.txt
+
+# STEP 12: CHECK FILE INFORMATION
+# Display the filename and file size in bytes.
+docker compose exec namenode hdfs dfs -stat "%n %b bytes" /user/wwka/exp2/exp2.txt
+
+# STEP 13: CHANGE THE REPLICATION FACTOR
+# Set the file replication factor to one and wait for completion.
+docker compose exec namenode hdfs dfs -setrep -w 1 /user/wwka/exp2/exp2.txt
+
+# STEP 14: DOWNLOAD THE FILE FROM HDFS
+# Download the HDFS file into the container's temporary folder.
+docker compose exec namenode hdfs dfs -get /user/wwka/exp2/exp2.txt /tmp/exp2_downloaded.txt
+
+# Copy the downloaded file from the container to Windows.
+docker compose cp namenode:/tmp/exp2_downloaded.txt ./exp2_downloaded.txt
+
+# STEP 15: VERIFY THE DOWNLOADED FILE
+# Display the downloaded file's contents on Windows.
+Get-Content exp2_downloaded.txt
+
+# STEP 16: DELETE THE FILE FROM HDFS
+# Remove the sample file from HDFS.
+docker compose exec namenode hdfs dfs -rm /user/wwka/exp2/exp2.txt
+
+# STEP 17: DELETE THE HDFS DIRECTORY
+# Remove the directory after it becomes empty.
+docker compose exec namenode hdfs dfs -rmdir /user/wwka/exp2
+
+# STEP 18: VERIFY DELETION
+# List the parent directory to confirm exp2 is gone.
+docker compose exec namenode hdfs dfs -ls /user/wwka
+
+# STEP 19: STOP HADOOP
+# Stop and remove the containers when the experiment is finished.
+docker compose down
+
+# ============================================================
+# END OF HDFS BASIC COMMANDS EXPERIMENT
+# ============================================================
