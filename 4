@@ -1,0 +1,21 @@
+students = {}
+
+file = open("students.txt", "r")
+
+for line in file:
+    name, dept, marks = line.strip().split(",")
+
+    marks = int(marks)
+
+    if dept in students:
+        students[dept].append(marks)
+    else:
+        students[dept] = [marks]
+
+file.close()
+
+print("Department-wise Average Marks:")
+
+for dept in students:
+    average = sum(students[dept]) / len(students[dept])
+    print(dept, ":", round(average, 2))
